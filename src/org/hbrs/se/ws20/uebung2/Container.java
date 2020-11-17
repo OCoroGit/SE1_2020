@@ -15,18 +15,18 @@ public class Container {
         }
         liste.add(member);
     }
-    public String deleteMember(Integer id){
-        for(int i=0;i<liste.size();i++) {
-            if(liste.get(i).getID().equals(id))
+    public String deleteMember(Integer id) {
+        for (int i = 0; i < liste.size(); i++) {
+            if (liste.get(i).getID().equals(id))
                 return liste.remove(i).toString();
         }
         return "Mit dieser ID(" + id + ")wurde kein Member angespeichert";
+    }
         /*
          Als String zuruekgegebene Fehlermeldung macht die Behandlung
          von Ausnahmen odere weitere Funktionsweise des Programms schwerer.
          Exceptions sind in diesem Fall besser.
         */
-    }
     public void dump(){
         Container clone=new Container();
         clone.liste=this.liste;
