@@ -21,12 +21,12 @@ public class Container {
                 return liste.remove(i).toString();
         }
         return "Mit dieser ID(" + id + ")wurde kein Member angespeichert";
-    }
         /*
          Als String zuruekgegebene Fehlermeldung macht die Behandlung
          von Ausnahmen odere weitere Funktionsweise des Programms schwerer.
          Exceptions sind in diesem Fall besser.
         */
+    }
     public void dump(){
         Container clone=new Container();
         clone.liste=this.liste;
