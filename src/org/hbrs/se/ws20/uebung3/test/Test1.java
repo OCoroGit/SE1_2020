@@ -11,26 +11,27 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.io.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
 class Test1 {
-    Container store;
-    Member r1 = new MemberKonkret(12);
-    Member r2 = new MemberKonkret(32);
-    Member r3 = new MemberKonkret(112);
-    Member r4 = new MemberKonkret(1211);
+    Container container;
+    Member r1 = new MemberKonkret(121);
+    Member r2 = new MemberKonkret(222);
+    Member r3 = new MemberKonkret(323);
 
 
     @BeforeEach
     void setUp() {
-        store= Container.getInstance();
+        container= Container.getInstance();
 
     }
     @AfterEach
     void tearDown() throws PersistenceException {
-        store.deleteAll();
-        store.store();
+        container.deleteAll();
+        container.store();
     }
 
     @Test
@@ -39,103 +40,73 @@ class Test1 {
         Container store2 =Container.getInstance();
         assertEquals(store1.hashCode(),store2.hashCode());
     }
+
+
+    // Leere Liste
+
+
+    // Die Liste mit einem Member
     @Test
-    void addMember() {
-
-        assertEquals ( 0 , store.size()  );
-
+    void StoreLoadEinsTest() {
         try {
-            store.addMember( r1 );
-            store.addMember( r2 );
-            store.addMember( r3 );
-            store.addMember( r4 );
-
-        } catch (ContainerException e) {
-            e.printStackTrace();
-        }
-        assertEquals ( 4 , store.size() );
-
-    }
-
-    @Test
-    void StoreLoadTest(){
-        try {
-            store.load();
-        } catch (PersistenceException e) {
-            e.printStackTrace();
-        }
-        assertEquals(0,store.size());
-
-        try {
-            store.addMember(r1);
-            store.addMember(r2);
-            store.addMember(r3);
-            store.store();
-            store.addMember(r4);
-            assertEquals(4,store.size());
-            store.load();
-            assertEquals(3,store.size());
-            /**
-             * r4 wurde geaddet, aber nicht mit store() gespeichert
-             * also nach load werden nur r1,r2,r3 in der liste sein
-             */
-            store.deleteMember(r1.getID());
-            store.deleteMember(r2.getID());
-            store.deleteMember(r3.getID());
-            assertEquals(0,store.size());
-            store.load();
-            assertEquals(3,store.size());
-            /**
-             * 3 Members wurden im vorherigen Schritt persistent gespeichert.
-             * Nach dem deleteMember() wurde neue leere Liste nicht mit store() gespeichert
-             * also man kann die alte Liste wiederstellen.
-             */
-            store.deleteAll();
-            store.store();
-            store.load();
-            assertEquals(0,store.size());
-
-
+            container.addMember(r1);
+            container.store();
+            container.deleteMember(r1.getID());
+            container.load();
+            assertEquals(1, container.size());
         } catch (ContainerException | PersistenceException e) {
             e.printStackTrace();
         }
     }
-
+        // Die Liste mit mehreren Members
+    @Test
+    void StoreLoadMehrereTest(){
+        try {
+            container.addMember(r1);
+            container.addMember(r2);
+            container.addMember(r3);
+            container.store();
+            container.deleteAll();
+            container.load();
+            assertEquals(3,container.size());
+        } catch (ContainerException | PersistenceException e) {
+            e.printStackTrace();
+        }
+    }
+    @Test
+    void LoadLeerTest() {
+        try {
+            FileOutputStream f=new FileOutputStream("objectsToSave.xml");
+            ObjectOutputStream o=new ObjectOutputStream(f);
+            container.load();
+        } catch (PersistenceException | FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        assertEquals(0, container.size());
+    }
     @Test
     void ClientTest() {
-        assertEquals(0,store.size());
+        assertEquals(0,container.size());
         Client client=new Client();
         try {
-            client.addMembers(store);
+            client.addMembers(container);
         } catch (ContainerException e) {
             e.printStackTrace();
         }
-        assertEquals(3,store.size());
+        assertEquals(3,container.size());
     }
 
     @Test
     void memberViewTest() throws ContainerException {
         MemberView mv=new MemberView();
-        store.addMember(r1);
-        mv.dump(store.getCurrentList());
-        store.addMember(r2);
-        mv.dump(store.getCurrentList());
+        container.addMember(r1);
+        mv.dump(container.getCurrentList());
+        container.addMember(r2);
+        mv.dump(container.getCurrentList());
 
     }
-    @Test
-    void deleteTest(){
-        try {
-            store.addMember(r1);
-            store.addMember(r2);
-        } catch (ContainerException e) {
-            e.printStackTrace();
-        }
-        assertEquals(2, store.size());
-        assertEquals(r2.toString(), store.deleteMember(r2.getID()));
-        assertEquals(1, store.size());
-        assertEquals(r1.toString(), store.deleteMember(r1.getID()));
-        assertEquals(0, store.size());
-        assertEquals("Mit dieser ID(" + r3.getID() + ")wurde kein Member angespeichert", store.deleteMember(r3.getID()));
-    }
+
 }
 

@@ -8,13 +8,18 @@ public class PersistenceStrategyStream<Member> implements PersistenceStrategy<Me
     ObjectOutputStream oos =null;
     ObjectInputStream ois = null;
      FileInputStream fis = null;
-    List<Member> newListe = null;
+
 
 
     @Override
-    public void openConnection() throws PersistenceException, IOException {
-        fos = new FileOutputStream("objectsToSave.xml");
-        oos = new ObjectOutputStream(fos);
+    public void openConnection() throws PersistenceException {
+        try {
+            fos = new FileOutputStream("objectsToSave.xml");
+            oos = new ObjectOutputStream(fos);
+        } catch (IOException e) {
+            throw new PersistenceException(PersistenceException.ExceptionType.NoStrategyIsSet,"Keine Strategie vorhanden");
+        }
+
 
     }
 
@@ -24,7 +29,7 @@ public class PersistenceStrategyStream<Member> implements PersistenceStrategy<Me
             fos.close();
             oos.close();
         } catch (IOException e) {
-            e.printStackTrace();
+           throw new PersistenceException(PersistenceException.ExceptionType.NoStrategyIsSet,"Keine Strategie vorhanden");
         }
     }
     @Override
@@ -32,13 +37,15 @@ public class PersistenceStrategyStream<Member> implements PersistenceStrategy<Me
      * Method for saving a list of Member-objects to a disk (HDD)
      */
     public void save(List<Member> member) throws PersistenceException {
+        if(member.size()==0)
+            throw new PersistenceException(PersistenceException.ExceptionType.NoStrategyIsSet,"kann nicht leeres Datei einspeichern");
         try {
             openConnection();
             oos.writeObject(member);
             oos.flush();
             closeConnection();
         } catch (IOException ioe) {
-            ioe.printStackTrace(); // error opening file
+            throw new PersistenceException(PersistenceException.ExceptionType.NoStrategyIsSet,"Kann nicht gespeichert werden");
         }
     }
 
@@ -48,21 +55,20 @@ public class PersistenceStrategyStream<Member> implements PersistenceStrategy<Me
      * Some coding examples come for free :-)
      */
     public List<Member> load() throws PersistenceException  {
-       if(checkData()){
-           try {
-               fis = new FileInputStream( "objectsToSave.xml" );
-               ois = new ObjectInputStream(fis);
-               Object obj = ois.readObject();
-               newListe = (List) obj;
-               fis.close();
-               ois.close();
+        List<Member> newListe = null;
+         if(!checkData())
+           throw new PersistenceException(PersistenceException.ExceptionType.NoStrategyIsSet,"Datei nicht vorhanden");
 
-           } catch (IOException e) {
-               e.printStackTrace();
-           } catch (ClassNotFoundException e) {
-               e.printStackTrace();
-           }
+       try {
+           fis = new FileInputStream( "objectsToSave.xml" );
+           ois = new ObjectInputStream(fis);
+           Object obj = ois.readObject();
+           newListe = (List) obj;
+           fis.close();
+           ois.close();
 
+       } catch (IOException | ClassNotFoundException e) {
+           throw new PersistenceException(PersistenceException.ExceptionType.NoStrategyIsSet,"Datei nicht vorhanden");
        }
         return newListe;
     }
@@ -87,4 +93,5 @@ public class PersistenceStrategyStream<Member> implements PersistenceStrategy<Me
             File f=new File("objectsToSave.xml");
             return (f.exists() && !f.isDirectory());
         }
+
 }

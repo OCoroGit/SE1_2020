@@ -7,19 +7,20 @@ import org.hbrs.se.ws20.uebung3.persistence.PersistenceException;
 
 public class Main {
     public static void main(String[] args){
+
         Container container=Container.getInstance();
         Client client=new Client();
-        MemberView m=new MemberView();
         try {
             client.addMembers(container);
             container.store();
             container.load();
-            m.dump(container.getCurrentList());
+            container.store();
         } catch (ContainerException e) {
             e.printStackTrace();
         } catch (PersistenceException e) {
             e.printStackTrace();
         }
+
 
     }
 }
