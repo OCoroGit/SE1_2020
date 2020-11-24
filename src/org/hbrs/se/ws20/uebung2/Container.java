@@ -10,17 +10,20 @@ public class Container {
         return liste.size();
     }
     public void addMember(Member member) throws ContainerException{
-        if (liste.contains(member)){
-            throw new ContainerException("Das Member-Objekt mit der ID "+member.getID()+"ist bereits vorhanden!");
+        if(liste.contains(member)){
+            ContainerException ex = new ContainerException();
+            ex.addID ( member.getID() );
+            throw ex;
         }
         liste.add(member);
     }
     public String deleteMember(Integer id) {
-        for (int i = 0; i < liste.size(); i++) {
-            if (liste.get(i).getID().equals(id))
-                return liste.remove(i).toString();
+        Member rec = getMember( id );
+        if (rec == null)
+            return "Mit dieser ID(" + id + ")wurde kein Member angespeichert"; else {
+            liste.remove(rec);
+            return rec.toString();
         }
-        return "Mit dieser ID(" + id + ")wurde kein Member angespeichert";
         /*
          Als String zuruekgegebene Fehlermeldung macht die Behandlung
          von Ausnahmen odere weitere Funktionsweise des Programms schwerer.
@@ -28,15 +31,16 @@ public class Container {
         */
     }
     public void dump(){
-        Container clone=new Container();
-        clone.liste=this.liste;
-        while(clone.size()!=0) {
-            System.out.println(clone.toString());
-            clone.liste.removeFirst();
+        for(Member m :liste){
+           System.out.println(m.toString());
         }
     }
-    @Override
-    public String toString() {
-            return "Member (ID = " + liste.getFirst().getID() + ")";
+    private Member getMember(Integer id) {
+        for ( Member rec : liste) {
+            if (id == rec.getID().intValue() ){
+                return rec;
+            }
+        }
+        return null;
     }
 }

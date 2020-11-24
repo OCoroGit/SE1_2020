@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class ContainerTest {
 
     Container c1;
-    Member m1= ()->(123);
-    Member m2= ()->(456);
-    Member m3= ()->(789);
+    Member m1= new MemberKonkret(123);
+    Member m2=new MemberKonkret(456);
+    Member m3=new MemberKonkret(789);
 
     @BeforeEach
     void setUp(){
@@ -27,22 +27,30 @@ class ContainerTest {
         assertEquals(0,cont.size());
     }
     @Test
-    void AddTest() throws ContainerException {
+    void AddTest() {
         assertEquals(0,c1.size());
-        c1.addMember(m1);
-        assertEquals(1, c1.size());
-        c1.addMember(m2);
-        assertEquals(2, c1.size());
-        c1.addMember(m3);
+        try {
+            c1.addMember(m1);
+            assertEquals(1, c1.size());
+            c1.addMember(m2);
+            assertEquals(2, c1.size());
+            c1.addMember(m3);
+        } catch (ContainerException e) {
+            e.printStackTrace();
+        }
 
         assertEquals(3, c1.size());
         assertThrows(ContainerException.class,()->c1.addMember(m1));
 
     }
     @Test
-    void deleteTest() throws ContainerException {
-        c1.addMember(m1);
-        c1.addMember(m2);
+    void deleteTest() {
+        try {
+            c1.addMember(m1);
+            c1.addMember(m2);
+        } catch (ContainerException e) {
+            e.printStackTrace();
+        }
         assertEquals(2, c1.size());
         assertEquals(m2.toString(), c1.deleteMember(m2.getID()));
         assertEquals(1, c1.size());
