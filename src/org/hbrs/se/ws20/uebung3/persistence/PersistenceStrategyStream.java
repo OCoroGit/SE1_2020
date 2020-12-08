@@ -1,51 +1,86 @@
 package org.hbrs.se.ws20.uebung3.persistence;
-
 import java.io.*;
 import java.util.List;
 
-public class PersistenceStrategyStream<Member> implements PersistenceStrategy<Member>, Serializable {
-    FileOutputStream fos = null;
-    ObjectOutputStream oos =null;
-    ObjectInputStream ois = null;
-     FileInputStream fis = null;
+public class PersistenceStrategyStream<Member> implements PersistenceStrategy<Member> {
 
+    // URL der Datei, in der die Objekte gespeichert werden
+    private String LOCATION = "objects.ser";
 
+    private ObjectOutputStream oos = null;
+    private FileOutputStream fos = null;
+
+    private FileInputStream fis = null;
+    private ObjectInputStream ois = null;
+
+    // Used only for testing purposes, if the location should be changed
+    // Example: Location is a directory
+    public void setLOCATION(String LOCATION) {
+        this.LOCATION = LOCATION;
+    }
 
     @Override
+    /**
+     * Used only for openining a connection for storing objects
+     * Exception occurs, when both are created (TODO!)
+     */
     public void openConnection() throws PersistenceException {
         try {
-            fos = new FileOutputStream("objectsToSave.xml");
-            oos = new ObjectOutputStream(fos);
-        } catch (IOException e) {
-            throw new PersistenceException(PersistenceException.ExceptionType.NoStrategyIsSet,"Keine Strategie vorhanden");
+            fos = new FileOutputStream( LOCATION );
+            // fis = new FileInputStream( LOCATION );
+        } catch (FileNotFoundException e) {
+            throw new PersistenceException( PersistenceException.ExceptionType.ConnectionNotAvailable
+                    , "Error in opening the connection, File could not be found");
         }
-
-
+        try {
+            oos = new ObjectOutputStream( fos );
+            // ois = new ObjectInputStream(  fis  );
+        } catch (IOException e) {
+            throw new PersistenceException( PersistenceException.ExceptionType.ConnectionNotAvailable
+                    , "Error in opening the connection, problems with the stream");
+        }
     }
 
     @Override
     public void closeConnection() throws PersistenceException {
+
         try {
-            fos.close();
-            oos.close();
-        } catch (IOException e) {
-           throw new PersistenceException(PersistenceException.ExceptionType.NoStrategyIsSet,"Keine Strategie vorhanden");
+            // Closing the outputstreams for storing
+            if (oos != null) oos.close();
+            if (fos != null) fos.close();
+
+            // Closing the inputstreams for loading
+            if (ois != null) ois.close();
+            if (fis != null) fis.close();
+        } catch( IOException e ) {
+            // Lazy solution: catching the exception of any closing activity ;-)
+            throw new PersistenceException(PersistenceException.ExceptionType.ClosingFailure , "error while closing connections");
         }
     }
+
     @Override
     /**
      * Method for saving a list of Member-objects to a disk (HDD)
      */
-    public void save(List<Member> member) throws PersistenceException {
-        if(member.size()==0)
-            throw new PersistenceException(PersistenceException.ExceptionType.NoStrategyIsSet,"kann nicht leeres Datei einspeichern");
+    public void save(List<Member> list) throws PersistenceException {
+        // ensure that the connection is open
+        this.openConnection();
+
+        // Write the objects to stream
         try {
-            openConnection();
-            oos.writeObject(member);
-            oos.flush();
-            closeConnection();
-        } catch (IOException ioe) {
-            throw new PersistenceException(PersistenceException.ExceptionType.NoStrategyIsSet,"Kann nicht gespeichert werden");
+            System.out.println(  list.size() + " User Stories wurden erfolgreich gespeichert!");
+            oos.writeObject( list );
+
+        }
+        catch (IOException e) {
+            // Koennte man ausgeben für interne Debugs: e.printStackTrace();
+            // Chain of Responsibility: Hochtragen der Exception in Richtung Ausgabe (UI)
+            // Uebergabe in ein lesbares Format fuer den Benutzer
+            e.printStackTrace();
+            throw new PersistenceException( PersistenceException.ExceptionType.LoadFailure , "Fehler beim Speichern der Datei!");
+        }
+        finally {
+            this.closeConnection();
         }
     }
 
@@ -54,44 +89,37 @@ public class PersistenceStrategyStream<Member> implements PersistenceStrategy<Me
      * Method for loading a list of Member-objects from a disk (HDD)
      * Some coding examples come for free :-)
      */
-    public List<Member> load() throws PersistenceException  {
-        List<Member> newListe = null;
-         if(!checkData())
-           throw new PersistenceException(PersistenceException.ExceptionType.NoStrategyIsSet,"Datei nicht vorhanden");
+    public List<Member> load() throws PersistenceException {
 
-       try {
-           fis = new FileInputStream( "objectsToSave.xml" );
-           ois = new ObjectInputStream(fis);
-           Object obj = ois.readObject();
-           newListe = (List) obj;
-           fis.close();
-           ois.close();
+        // Load the objects from stream
+        List<Member> list = null;
 
-       } catch (IOException | ClassNotFoundException e) {
-           throw new PersistenceException(PersistenceException.ExceptionType.NoStrategyIsSet,"Datei nicht vorhanden");
-       }
-        return newListe;
-    }
-        // Some Coding hints ;-)
-        // ObjectInputStream ois = null;
-        // FileInputStream fis = null;
-        // List<...> newListe =  null;
-        //
-        // Initiating the Stream (can also be moved to method openConnection()... ;-)
-        // fis = new FileInputStream( " a location to a file" );
-        // ois = new ObjectInputStream(fis);
+        try {
+            // Create Streams here instead using "this.openConnection();"
+            fis = new FileInputStream( LOCATION );
+            ois = new ObjectInputStream( fis );
 
-        // Reading and extracting the list (try .. catch ommitted here)
-        // Object obj = ois.readObject();
-
-        // if (obj instanceof List<?>) {
-        //       newListe = (List) obj;
-        // return newListe
-
-        // and finally close the streams (guess where this could be...?)
-        public boolean checkData(){
-            File f=new File("objectsToSave.xml");
-            return (f.exists() && !f.isDirectory());
+            // Auslesen der Liste
+            Object obj = ois.readObject();
+            if (obj instanceof List<?>) {
+                list = (List) obj;
+            }
+            System.out.println("LOG: Es wurden " + list.size() + " User Stories erfolgreich reingeladen!");
+            return list;
+        }
+        catch (IOException e) {
+            // Sup-Optimal, da Exeception in Form eines unlesbaren Stake-Traces ausgegeben wird
+            e.printStackTrace();
+            throw new PersistenceException( PersistenceException.ExceptionType.LoadFailure , "Fehler beim Laden der Datei!");
+        }
+        catch (ClassNotFoundException e) {
+            // Chain of Responsbility erfuellt, durch Throw der Exceotion kann UI
+            // benachrichtigt werden!
+            throw new PersistenceException( PersistenceException.ExceptionType.LoadFailure , "Fehler beim Laden der Datei! Class not found!");
+        }
+        finally {
+            this.closeConnection();
         }
 
+    }
 }

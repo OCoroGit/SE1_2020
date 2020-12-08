@@ -9,7 +9,7 @@ import java.util.LinkedList;
 
 public class Container implements Serializable{
 
-    private static Container firstInstatce=null;
+    private static Container firstInstance=null;
 
     private LinkedList<Member> liste;
 
@@ -17,11 +17,12 @@ public class Container implements Serializable{
     this.liste= new LinkedList<>();
     }
 
-    public static Container getInstance(){
-        if(firstInstatce==null){
-            firstInstatce= new Container();
+    public static synchronized Container getInstance() {
+        if (firstInstance == null) {
+            firstInstance = new Container();
+            System.out.println("Objekt vom Typ Container wurde instanziiert!");
         }
-        return firstInstatce;
+        return firstInstance;
     }
 
     public void store()throws PersistenceException {
