@@ -3,10 +3,8 @@ package org.hbrs.se.ws20.uebung4.model;
 import org.hbrs.se.ws20.uebung3.persistence.PersistenceException;
 import org.hbrs.se.ws20.uebung4.controller.EingabeDialog;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 public class Container {
 
@@ -18,7 +16,7 @@ public class Container {
     private static Container instance = new Container();
 
     // URL der Datei, in der die Objekte gespeichert werden
-    final static String LOCATION = "userstories1.ser";
+    final static String LOCATION = "objects.ser";
 
     /**
      * Liefert ein Singleton zurück. Diese Methode ist thread-safe (oder...?) --> RICHTIG

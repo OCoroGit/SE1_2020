@@ -88,13 +88,10 @@ public class UserStory implements java.io.Serializable, Comparable<UserStory> {
 
     @Override
     public String toString() {
-        return  id +
-                "   " + titel +
-                "   "+ aufwand +
-                "       " + mehrwert +
-                "       " + risk +
-                "       " + strafe +
-                "       " + prio ;
+        return  "User Story mit id "+id +
+                " '" + titel +
+                "' mit dem Aufwand "+ aufwand +
+                " und Prio " + prio +" ";
 
     }
 }

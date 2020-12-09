@@ -14,19 +14,21 @@ public class AusgabeDialog {
         Container container = Container.getInstance();
         List<UserStory> ll=container.getCurrentList();
         Collections.sort(ll, new ComparatorPrio());
-        System.out.println("ID  "+"Titel    "+"Aufwand  "+"Mehrwert "+"Risiko   "+"Strafe   "+"Prio ");
-        for (UserStory us:ll) {
-            System.out.format(us.toString());
-        }
+        TableUS tus=new TableUS();
+        tus.printTable(ll);
     }
     public void dumpAufwand(int n){
         TableUS tus=new TableUS();
         Container container = Container.getInstance();
         List<UserStory> liste=container.getCurrentList();
-        System.out.format( "%10s %30s %20s %20s %20s %20s%20s", "ID","Titel","Aufwand","Mehrwert","Risiko ","Strafe","Prio");
-        liste.stream().filter( userStory -> userStory.getAufwand() >n )   // Filter
-                .sorted( new ComparatorPrio() ) // MAP
-                .forEach( userStory -> tus.printTable(userStory));
+        List<UserStory> ll= new LinkedList<UserStory>();
+        for(UserStory us:liste){
+            if(us.getAufwand()>=n){
+                ll.add(us);
+            }
+        }
+        Collections.sort(ll, new ComparatorPrio());
+        tus.printTable(ll);
     }
 
 }

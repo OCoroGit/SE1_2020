@@ -89,8 +89,8 @@ public class EingabeDialog {
         } // Ende der Schleife
 
     }
-    private void enter(int id, String titel, int mehrwert, int strafe, int aufwand,int risk){
-        if(mehrwert<1||mehrwert>5||strafe<1||strafe>5||risk<1||risk>5||aufwand<0){
+    public void enter(int id, String titel, int mehrwert, int strafe, int aufwand,int risk){
+        if(mehrwert<1||strafe<1||risk<1||aufwand<0){
             throw new IllegalArgumentException("ungueltige Eingabe");
         }
         UserStory us= new UserStory(id,titel,mehrwert,strafe,aufwand,risk);
